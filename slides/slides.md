@@ -6,6 +6,54 @@ jmacey@bournemouth.ac.uk
 
 ---
 
+## Introduction
+
+- From Mike Acton's cppcon talk :- 3 big lies
+<img src="images/lies.png" width="80%"></img>
+- I know that's what we have taught you for the last 2 years!
+
+--
+
+## Well not quite
+
+- For many cases this is true, especially for large software systems
+- However for high performance applications we need speed / and good memory performance
+- This is true of both games and DCC tools
+- [see this](https://cellperformance.beyond3d.com/articles/2008/03/three-big-lies.html)
+
+--
+
+# Lie #1
+
+- Software is a platform :-
+  > The reality is software is not a platform. You can't idealize the hardware. And the constants in the "Big-O notation" that are so often ignored, are often the parts that actually matter in reality (for example, memory performance.) 
+
+--
+
+# Lie #2 
+- Code should be designed around a model of the world!
+
+<blockquote>
+<small/><P/>There is no value in code being some kind of model or map of an imaginary world. I don't know why this one is so compelling for some programmers, but it is extremely popular. If there's a rocket in the game, rest assured that there is a "Rocket" class (Assuming the code is C++) which contains data for exactly one rocket and does rockety stuff. With no regard at all for what data transformation is really being done, or for the layout of the data. Or for that matter, without the basic understanding that where there's one thing, there's probably more than one.
+</blockquote>
+
+--
+
+# Lie #3
+- Code is more important than data
+<blockquote>
+<small/><P/>This is the biggest lie of all. Programmers have spent untold billions of man-years writing about code, how to write it faster, better, prettier, etc. and at the end of the day, it's not that significant. Code is ephemeral and has no real intrinsic value. The algorithms certainly do, sure. But the code itself isn't worth all this time (and shelf space! - have you seen how many books there are on UML diagrams?). The code, the performance and the features hinge on one thing - the data. Bad data equals slow and crappy application. Writing a good engine means first and formost, understanding the data.
+</blockquote>
+
+
+--
+
+## So now what?
+- the following slides are going to present issues that can arise (usually from C++ / OO approach)
+
+
+---
+
 # Strict Aliasing
 - Strict aliasing is an assumption, made by the C (or C++) compiler, that dereferencing pointers to objects of different types will never refer to the same memory location (i.e. alias eachother.) 
 - Why is this an issue?
@@ -396,7 +444,87 @@ void updatehealth ()
 
 ## Don’t use enums
 
+- Enumerations are used to define sets of states. 
+- We could have had a state variable for the regenerating entity, one that had ```infullhealth```, ```ishurt```, ```isdead``` as its three states.
+- We then use and ```if``` or ```switch``` to determine what needs to be done.
+- This approach is not ideal if we don't want to use an ```if``` in our code.
 
+--
+
+## Don’t use enums
+
+- Instead we use tables (arrays of components)
+  - Any enum can be emulated with a variety of tables. 
+  - All you need is one table per enumerable value. 
+  - Setting the enumeration is an insert into a table.
+- If it exists in the table it can be operated on.
+
+--
+
+## Don’t use enums
+
+> If the enum is a state or type enum previously handled by a switch or virtual call, then we don’t need to look up the value, instead we change the way we think about the problem. The solution is to run transforms taking the content of each of the switch cases or virtual methods as the operation to apply to the appropriate table, the table corresponding to the original enumeration value.
+
+--
+
+# Polymorphism 
+- What will this code generate?
+
+```
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+
+struct shape 
+{ 
+    shape (){}
+    virtual ~shape() {}
+    virtual float getarea () const = 0;
+};
+struct circle : public shape 
+{ 
+    circle( float diameter ) : d(diameter ) {} 
+    ~circle() {}
+    float getarea() const { return d*d*M_PI/4; } 
+    float d;
+};
+
+struct square : public shape 
+{ 
+    square( float across ) : width( across ) {} 
+    ~square() {}
+    float getarea() const { return width*width; } 
+    float width;
+};
+
+int main () 
+{
+  circle circle( 2.5f );
+  square square( 5.0f );
+  shape *shape1 = &circle, *shape2 = &square;
+  printf( "areas are %f and %f\n", shape1->getarea(), shape2->getarea());
+  return EXIT_SUCCESS;
+}
+```
+
+--
+
+<iframe width="1000px" height="600px" src="https://godbolt.org/e#g:!((g:!((g:!((h:codeEditor,i:(j:1,lang:c%2B%2B,source:'%23include+%3Ccstdio%3E%0A%23include+%3Ccstdlib%3E%0A%23include+%3Ccmath%3E%0A%0Astruct+shape+%0A%7B+%0A++++shape+()%7B%7D%0A++++virtual+~shape()+%7B%7D%0A++++virtual+float+getarea+()+const+%3D+0%3B%0A%7D%3B%0Astruct+circle+:+public+shape+%0A%7B+%0A++++circle(+float+diameter+)+:+d(diameter+)+%7B%7D+%0A++++~circle()+%7B%7D%0A++++float+getarea()+const+%7B+return+d*d*M_PI/4%3B+%7D+%0A++++float+d%3B%0A%7D%3B%0A%0Astruct+square+:+public+shape+%0A%7B+%0A++++square(+float+across+)+:+width(+across+)+%7B%7D+%0A++++~square()+%7B%7D%0A++++float+getarea()+const+%7B+return+width*width%3B+%7D+%0A++++float+width%3B%0A%7D%3B%0A%0Aint+main+()+%0A%7B%0A++circle+circle(+2.5f+)%3B%0A++square+square(+5.0f+)%3B%0A++shape+*shape1+%3D+%26circle,+*shape2+%3D+%26square%3B%0A++printf(+%22areas+are+%25f+and+%25f%5Cn%22,+shape1-%3Egetarea(),+shape2-%3Egetarea())%3B%0A++return+EXIT_SUCCESS%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%231',t:'0')),k:49.0897164012839,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:clang_concepts,filters:(b:'0',binary:'1',commentOnly:'0',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'1',trim:'0'),lang:c%2B%2B,libs:!(),options:'',source:1),l:'5',n:'0',o:'x86-64+clang+(experimental+concepts)+(Editor+%231,+Compiler+%231)+C%2B%2B',t:'0')),header:(),k:48.5302894337479,l:'4',m:100,n:'0',o:'',s:0,t:'0'),(g:!((h:output,i:(compiler:1,editor:1,wrap:'1'),l:'5',n:'0',o:'%231+with+x86-64+clang+(experimental+concepts)',t:'0')),k:2.3799941649682106,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',n:'0',o:'',t:'0')),version:4"></iframe>
+
+--
+
+## Vtable
+- The use of polymorphism above creates a vtable and more importantly a vtable lookup at runtime.
+- If you use existence-based-processing techniques, your classes defined by the tables they belong to, then you can switch between tables at runtime. 
+- you compose your class from different attributes and abilities then need to change them post creation, you can. 
+
+--
+
+## Vtable
+
+
+- you need a little extra space for the reference to the entity in each of the class attributes or abilities, but you don’t need a virtual table pointer to find which function to call. 
+- You can run through all entities of the same type increasing cache effectiveness, even though it provides a safe way to change type at runtime.
 
 
 ---
