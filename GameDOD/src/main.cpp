@@ -48,7 +48,8 @@ int main(int argc, char * argv[])
   SDL_Rect rect;
   SDL_GetDisplayBounds(0,&rect);
   // now create our window
-  SDL_Window *window=SDL_CreateWindow("SDLNGL",
+  std::string title=fmt::format("Game Using DOD {0} Objects {1} Avoid Objects",kObjectCount,kAvoidCount);
+  SDL_Window *window=SDL_CreateWindow(title.c_str(),
                                       SDL_WINDOWPOS_CENTERED,
                                       SDL_WINDOWPOS_CENTERED,
                                       rect.w/2,
