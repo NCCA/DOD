@@ -64,7 +64,6 @@ int main(int argc, char * argv[])
   }
 
   // Create our opengl context and attach it to our window
-  auto start = std::chrono::system_clock::now();
 
    SDL_GLContext glContext=createOpenGLContext(window);
    if(!glContext)
@@ -103,8 +102,11 @@ int main(int argc, char * argv[])
   bool quit=false;
   // sdl event processing data structure
   SDL_Event event;
-  Benchmark <>updateBenchmark;
-  Benchmark <>renderBenchmark;
+  Benchmark <>updateBenchmark(2000);
+  Benchmark <>renderBenchmark(2000);
+  auto end= std::chrono::system_clock::now();
+  auto start = std::chrono::system_clock::now();
+
   while(!quit)
   {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -129,8 +131,7 @@ int main(int argc, char * argv[])
 
       } // end of event switch
     } // end of poll events
-    auto start = std::chrono::system_clock::now();
-    auto end= std::chrono::system_clock::now();
+    start = std::chrono::system_clock::now();
     size_t sprite_count;
     std::chrono::duration<float> elapsed_seconds = end-start;
     {
@@ -167,13 +168,15 @@ int main(int argc, char * argv[])
   // now tidy up and exit SDL
  SDL_Quit();
  teardown();
- std::cout<<"Render Benchmarks Min "<<renderBenchmark.min()<<"uS Max "<<renderBenchmark.max()
-         <<"uS Average "<<renderBenchmark.average()
-        <<"uS Median "<<renderBenchmark.median()<<"uS\n";
+ std::cout<<"Render Benchmarks Min "<<renderBenchmark.min()
+          <<" uS Max "<<renderBenchmark.max()
+          <<" uS Average "<<renderBenchmark.average()
+          <<" uS Median "<<renderBenchmark.median()<<" uS\n";
 
- std::cout<<"Update Benchmarks Min "<<updateBenchmark.min()<<"uS Max "<<updateBenchmark.max()
-         <<"uS Average "<<updateBenchmark.average()
-        <<"uS Median "<<updateBenchmark .median()<<"uS\n";
+ std::cout<<"Update Benchmarks Min "<<updateBenchmark.min()
+          <<" uS Max "<<updateBenchmark.max()
+          <<" uS Average "<<updateBenchmark.average()
+          <<" uS Median "<<updateBenchmark .median()<<" uS\n";
 
 
  // whilst this code will never execute under windows we need to have a return from

@@ -16,6 +16,7 @@
 #include <ngl/Vec4.h>
 #include <ngl/NGLStream.h>
 #include <ngl/Random.h>
+#include "Benchmark.h"
 /// @brief function to quit SDL with error message
 /// @param[in] _msg the error message to send
 [[noreturn]] void SDLErrorExit(const std::string &_msg);
@@ -34,9 +35,6 @@ int main(int argc, char * argv[])
   // under windows we must use main with argc / v so jus flag unused for params
   NGL_UNUSED(argc);
   NGL_UNUSED(argv);
-  size_t numFrames=0;
-  std::chrono::steady_clock::duration updateAverage;
-  std::chrono::steady_clock::duration renderAverage;
   initialize(kObjectCount,kAvoidCount);
   std::unique_ptr<RenderData []> sprite_data = std::make_unique<RenderData []>(kMaxSpriteCount);
 
@@ -67,7 +65,6 @@ int main(int argc, char * argv[])
   }
 
   // Create our opengl context and attach it to our window
-  auto start = std::chrono::system_clock::now();
 
    SDL_GLContext glContext=createOpenGLContext(window);
    if(!glContext)
@@ -106,6 +103,11 @@ int main(int argc, char * argv[])
   bool quit=false;
   // sdl event processing data structure
   SDL_Event event;
+  Benchmark <>updateBenchmark(2000);
+  Benchmark <>renderBenchmark(2000);
+  auto end= std::chrono::system_clock::now();
+  auto start = std::chrono::system_clock::now();
+
   while(!quit)
   {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -130,7 +132,7 @@ int main(int argc, char * argv[])
 
       } // end of event switch
     } // end of poll events
-    auto end = std::chrono::system_clock::now();
+    start = std::chrono::system_clock::now();
     size_t sprite_count;
     std::chrono::duration<float> elapsed_seconds = end-start;
     {
@@ -139,7 +141,8 @@ int main(int argc, char * argv[])
       auto updateend = std::chrono::steady_clock::now();
 
       ngl::msg->addMessage(fmt::format("Update took {0} uS",std::chrono::duration_cast<std::chrono::microseconds> (updateend - updatebegin).count()));
-      updateAverage+=std::chrono::duration_cast<std::chrono::microseconds> (updateend - updatebegin);
+      updateBenchmark.addDuration(updateend - updatebegin);
+
     }
 
     {
@@ -154,19 +157,27 @@ int main(int argc, char * argv[])
     vao->unbind();
     auto renderend = std::chrono::steady_clock::now();
     ngl::msg->addMessage(fmt::format("Render took {0} uS",std::chrono::duration_cast<std::chrono::microseconds> (renderend - renderbegin).count()));
-    renderAverage+=std::chrono::duration_cast<std::chrono::microseconds> (renderend - renderbegin);
+    renderBenchmark.addDuration(renderend - renderbegin);
+
     }
 
-    start = std::chrono::system_clock::now();
-    ++numFrames;
+    end = std::chrono::system_clock::now();
     // swap the buffers
     SDL_GL_SwapWindow(window);
 
   }
-  std::cout<<"Average update time "<<updateAverage.count() /(long long)numFrames<<'\n';
-//  std::cout<<"Min "<<std::chrono::duration_cast<std::chrono::microseconds>(updateAverage.min()).count()<<'\n';
-  //  std::cout<<"Average Update Time "<<std::chrono::duration_cast<std::chrono::microseconds>(updateAverage/numFrames).count()
-//          <<' '<<" Average Render Time "<<std::chrono::duration_cast<std::chrono::microseconds>(renderAverage/numFrames).count()<<'\n';
+  std::cout<<"Render Benchmarks Min "<<renderBenchmark.min()
+           <<" uS Max "<<renderBenchmark.max()
+           <<" uS Average "<<renderBenchmark.average()
+           <<" uS Median "<<renderBenchmark.median()<<" uS\n";
+
+  std::cout<<"Update Benchmarks Min "<<updateBenchmark.min()
+           <<" uS Max "<<updateBenchmark.max()
+           <<" uS Average "<<updateBenchmark.average()
+           <<" uS Median "<<updateBenchmark .median()<<" uS\n";
+
+
+
   // now tidy up and exit SDL
  SDL_Quit();
  teardown();

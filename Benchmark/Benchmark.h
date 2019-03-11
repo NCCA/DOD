@@ -3,14 +3,21 @@
 #include <chrono>
 #include <vector>
 
+/// @brief simple Benchmark class for timing things
+
 template<typename Clock=std::chrono::high_resolution_clock, typename Resolution=std::chrono::microseconds>
 class Benchmark
 {
 
 public:
-    Benchmark()=default;
-    Benchmark(const Benchmark&)=delete;
 
+    Benchmark()=default;
+    Benchmark(size_t _reserve)
+    {
+        m_durations.reserve(_reserve);
+    }
+    Benchmark(const Benchmark&)=delete;
+    // add a time duration
     void addDuration(typename Clock::duration now)
     {
       m_durations.push_back(now);

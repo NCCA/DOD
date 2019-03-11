@@ -5,7 +5,7 @@
 int main()
 {
 //  Benchmark<std::chrono::high_resolution_clock,std::chrono::milliseconds> b;
-  Benchmark<> b;
+  Benchmark<> b(500);
   using namespace std::chrono_literals;
   std::random_device seed_generator;
   std::mt19937 gen(seed_generator());
