@@ -16,6 +16,7 @@
 #include <ngl/Vec4.h>
 #include <ngl/NGLStream.h>
 #include <ngl/Random.h>
+#include "Benchmark.h"
 /// @brief function to quit SDL with error message
 /// @param[in] _msg the error message to send
 [[noreturn]] void SDLErrorExit(const std::string &_msg);
@@ -102,6 +103,8 @@ int main(int argc, char * argv[])
   bool quit=false;
   // sdl event processing data structure
   SDL_Event event;
+  Benchmark <>updateBenchmark;
+  Benchmark <>renderBenchmark;
   while(!quit)
   {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -126,34 +129,36 @@ int main(int argc, char * argv[])
 
       } // end of event switch
     } // end of poll events
-    auto end = std::chrono::system_clock::now();
+    auto start = std::chrono::system_clock::now();
+    auto end= std::chrono::system_clock::now();
     size_t sprite_count;
     std::chrono::duration<float> elapsed_seconds = end-start;
     {
       auto updatebegin = std::chrono::steady_clock::now();
       sprite_count = update(sprite_data.get(), elapsed_seconds.count());
       auto updateend = std::chrono::steady_clock::now();
-
       ngl::msg->addMessage(fmt::format("Update took {0} uS",std::chrono::duration_cast<std::chrono::microseconds> (updateend - updatebegin).count()));
+      updateBenchmark.addDuration(updateend - updatebegin);
     }
 
     {
       auto renderbegin = std::chrono::steady_clock::now();
+      vao->bind();
+      vao->setData( ngl::SimpleVAO::VertexData(sizeof(RenderData)*(kObjectCount+kAvoidCount),sprite_data[0].pos.m_x));
+      // We must do this each time as we change the data.
+      vao->setVertexAttributePointer(0,2,GL_FLOAT,sizeof(RenderData),0);
+      vao->setVertexAttributePointer(1,4,GL_FLOAT,sizeof(RenderData),2);
+      vao->setNumIndices(kObjectCount+kAvoidCount);
+      vao->draw();
+      vao->unbind();
+      auto renderend = std::chrono::steady_clock::now();
 
-    vao->bind();
-    vao->setData( ngl::SimpleVAO::VertexData(sizeof(RenderData)*(kObjectCount+kAvoidCount),sprite_data[0].pos.m_x));
-    // We must do this each time as we change the data.
-    vao->setVertexAttributePointer(0,2,GL_FLOAT,sizeof(RenderData),0);
-    vao->setVertexAttributePointer(1,4,GL_FLOAT,sizeof(RenderData),2);
-    vao->setNumIndices(kObjectCount+kAvoidCount);
-    vao->draw();
-    vao->unbind();
-    auto renderend = std::chrono::steady_clock::now();
+      ngl::msg->addMessage(fmt::format("Render took {0} uS",std::chrono::duration_cast<std::chrono::microseconds> (renderend - renderbegin).count()));
+      renderBenchmark.addDuration(renderend - renderbegin);
 
-    ngl::msg->addMessage(fmt::format("Render took {0} uS",std::chrono::duration_cast<std::chrono::microseconds> (renderend - renderbegin).count()));
     }
 
-    start = std::chrono::system_clock::now();
+    end = std::chrono::system_clock::now();
 
     // swap the buffers
     SDL_GL_SwapWindow(window);
@@ -162,6 +167,15 @@ int main(int argc, char * argv[])
   // now tidy up and exit SDL
  SDL_Quit();
  teardown();
+ std::cout<<"Render Benchmarks Min "<<renderBenchmark.min()<<"uS Max "<<renderBenchmark.max()
+         <<"uS Average "<<renderBenchmark.average()
+        <<"uS Median "<<renderBenchmark.median()<<"uS\n";
+
+ std::cout<<"Update Benchmarks Min "<<updateBenchmark.min()<<"uS Max "<<updateBenchmark.max()
+         <<"uS Average "<<updateBenchmark.average()
+        <<"uS Median "<<updateBenchmark .median()<<"uS\n";
+
+
  // whilst this code will never execute under windows we need to have a return from
  // SDL_Main!
  return EXIT_SUCCESS;

@@ -34,6 +34,9 @@ int main(int argc, char * argv[])
   // under windows we must use main with argc / v so jus flag unused for params
   NGL_UNUSED(argc);
   NGL_UNUSED(argv);
+  size_t numFrames=0;
+  std::chrono::steady_clock::duration updateAverage;
+  std::chrono::steady_clock::duration renderAverage;
   initialize(kObjectCount,kAvoidCount);
   std::unique_ptr<RenderData []> sprite_data = std::make_unique<RenderData []>(kMaxSpriteCount);
 
@@ -136,11 +139,11 @@ int main(int argc, char * argv[])
       auto updateend = std::chrono::steady_clock::now();
 
       ngl::msg->addMessage(fmt::format("Update took {0} uS",std::chrono::duration_cast<std::chrono::microseconds> (updateend - updatebegin).count()));
+      updateAverage+=std::chrono::duration_cast<std::chrono::microseconds> (updateend - updatebegin);
     }
 
     {
-      auto renderbegin = std::chrono::steady_clock::now();
-
+    auto renderbegin = std::chrono::steady_clock::now();
     vao->bind();
     vao->setData( ngl::SimpleVAO::VertexData(sizeof(RenderData)*(kObjectCount+kAvoidCount),sprite_data[0].pos.m_x));
     // We must do this each time as we change the data.
@@ -150,16 +153,20 @@ int main(int argc, char * argv[])
     vao->draw();
     vao->unbind();
     auto renderend = std::chrono::steady_clock::now();
-
     ngl::msg->addMessage(fmt::format("Render took {0} uS",std::chrono::duration_cast<std::chrono::microseconds> (renderend - renderbegin).count()));
+    renderAverage+=std::chrono::duration_cast<std::chrono::microseconds> (renderend - renderbegin);
     }
 
     start = std::chrono::system_clock::now();
-
+    ++numFrames;
     // swap the buffers
     SDL_GL_SwapWindow(window);
 
   }
+  std::cout<<"Average update time "<<updateAverage.count() /(long long)numFrames<<'\n';
+//  std::cout<<"Min "<<std::chrono::duration_cast<std::chrono::microseconds>(updateAverage.min()).count()<<'\n';
+  //  std::cout<<"Average Update Time "<<std::chrono::duration_cast<std::chrono::microseconds>(updateAverage/numFrames).count()
+//          <<' '<<" Average Render Time "<<std::chrono::duration_cast<std::chrono::microseconds>(renderAverage/numFrames).count()<<'\n';
   // now tidy up and exit SDL
  SDL_Quit();
  teardown();

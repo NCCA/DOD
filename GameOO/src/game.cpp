@@ -170,7 +170,6 @@ struct MoveComponent : public Component
         // update position based on movement velocity & delta time
         pos->pos.m_x += velx * deltaTime;
         pos->pos.m_y += vely * deltaTime;
-//        std::cout<<pos->pos<<'\n';
         // check against world bounds; put back onto bounds and mirror the velocity component to "bounce" back
         if (pos->pos.m_x < bounds->xMin)
         {
@@ -217,12 +216,12 @@ struct AvoidComponent : public Component
             avoidList = FindAllComponentsOfType<AvoidThisComponent>();
     }
     
-    static float DistanceSq(const PositionComponent* a, const PositionComponent* b)
-    {
-        float dx = a->pos.m_x - b->pos.m_x;
-        float dy = a->pos.m_y - b->pos.m_y;
-        return dx * dx + dy * dy;
-    }
+//    static float DistanceSq(const PositionComponent* a, const PositionComponent* b)
+//    {
+//        float dx = a->pos.m_x - b->pos.m_x;
+//        float dy = a->pos.m_y - b->pos.m_y;
+//        return dx * dx + dy * dy;
+//    }
     
     void ResolveCollision(float deltaTime)
     {
@@ -247,7 +246,7 @@ struct AvoidComponent : public Component
 
             PositionComponent* avoidposition = av->GetGameObject().GetComponent<PositionComponent>();
             // is our position closer to "thing to avoid" position than the avoid distance?
-            if (DistanceSq(myposition, avoidposition) < av->distance * av->distance)
+            if ((myposition->pos-avoidposition->pos).lengthSquared() < av->distance * av->distance)
             {
                 ResolveCollision(time);
 

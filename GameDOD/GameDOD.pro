@@ -38,7 +38,8 @@ SOURCES+= $$PWD/src/game.cpp \
 # same for the .h files
 HEADERS+= $$PWD/include/game.h
 # and add the include dir into the search path for Qt and make
-INCLUDEPATH +=./include
+INCLUDEPATH +=./include \
+              ../Benchmark
 # where our exe is going to live (root of project)
 DESTDIR=./
 # add the glsl shader files
