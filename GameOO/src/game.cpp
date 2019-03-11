@@ -330,12 +330,12 @@ void initialize(size_t _numObjects, size_t _numAvoid)
         go->AddComponent(sprite);
         
         // make it move, slowly
-        MoveComponent* move = new MoveComponent(0.1f, 0.2f);
+        MoveComponent* move = new MoveComponent(2.0f, 12.0f);
         go->AddComponent(move);
         
         // setup an "avoid this" component
         AvoidThisComponent* avoid = new AvoidThisComponent();
-        avoid->distance = 1.3f;
+        avoid->distance = (sprite->colourScale.m_a/2.0f)-5.0f;
         go->AddComponent(avoid);
         
         s_Objects.emplace_back(go);
