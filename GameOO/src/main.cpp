@@ -103,8 +103,8 @@ int main(int argc, char * argv[])
   bool quit=false;
   // sdl event processing data structure
   SDL_Event event;
-  Benchmark <>updateBenchmark(2000);
-  Benchmark <>renderBenchmark(2000);
+  Benchmark <>updateBenchmark(2000,"updateBench.txt");
+  Benchmark <>renderBenchmark(2000,"renderBench.txt");
   auto end= std::chrono::system_clock::now();
   auto start = std::chrono::system_clock::now();
 
@@ -169,15 +169,15 @@ int main(int argc, char * argv[])
   std::cout<<"Render Benchmarks Min "<<renderBenchmark.min()
            <<" uS Max "<<renderBenchmark.max()
            <<" uS Average "<<renderBenchmark.average()
-           <<" uS Median "<<renderBenchmark.median()<<" uS\n";
+           <<" uS Median "<<renderBenchmark.median()
+           <<" uS Mode "<< renderBenchmark.mode()<<" uS\n";
 
   std::cout<<"Update Benchmarks Min "<<updateBenchmark.min()
            <<" uS Max "<<updateBenchmark.max()
            <<" uS Average "<<updateBenchmark.average()
-           <<" uS Median "<<updateBenchmark .median()<<" uS\n";
+           <<" uS Median "<<updateBenchmark.median()
+           <<" uS Mode "<< updateBenchmark.mode()<<" uS\n";
 
-  updateBenchmark.mode();
-  renderBenchmark.mode();
 
   // now tidy up and exit SDL
  SDL_Quit();

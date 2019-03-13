@@ -73,5 +73,5 @@ else{ # note brace must be here
   message("Using custom NGL location")
   include($(NGLDIR)/UseNGL.pri)
 }
-
+CONFIG+=c++17
 QMAKE_CXX_FLAGS+=-O3 -ffast-math  -mavx2 -mfma -mf16c

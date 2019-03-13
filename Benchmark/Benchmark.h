@@ -4,7 +4,10 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
+#include <type_traits>
+
 /// @brief simple Benchmark class for timing things
 
 template<typename Clock=std::chrono::high_resolution_clock, typename Resolution=std::chrono::microseconds>
@@ -18,7 +21,55 @@ public:
     {
         m_durations.reserve(_reserve);
     }
+    Benchmark(size_t _reserve, const std::string &_fileName )
+    {
+      m_durations.reserve(_reserve);
+      m_filename=_fileName;
+    }
     Benchmark(const Benchmark&)=delete;
+
+    ~Benchmark()
+    {
+      if(m_filename.size() !=0)
+      {
+        std::ofstream fileOut;
+        fileOut.open(m_filename.c_str());
+        // check to see if we can open the file
+        if (!fileOut.is_open())
+        {
+          std::cerr <<"Could not open File : "<<m_filename<<" for writing \n";
+          exit(EXIT_FAILURE);
+        }
+        fileOut<<"# Benchmark Data \n";
+        if  ( std::is_same<Resolution, std::chrono::microseconds>::value )
+        {
+          fileOut<<"# Resolution microseconds\n";
+        }
+        else if  ( std::is_same<Resolution, std::chrono::milliseconds>::value )
+        {
+          fileOut<<"# Resolution milliseconds\n";
+        }
+        else if  ( std::is_same<Resolution, std::chrono::nanoseconds>::value )
+        {
+          fileOut<<"# Resolution nanoseconds\n";
+        }
+        else if  ( std::is_same<Resolution, std::chrono::seconds>::value )
+        {
+          fileOut<<"# Resolution seconds\n";
+        }
+        for(auto d : m_durations)
+          fileOut<<"Duration\t"<<std::chrono::duration_cast<Resolution>(d).count()<<'\n';
+
+        fileOut<<"Min\t"<<min()<<'\n';
+        fileOut<<"Max\t"<<max()<<'\n';
+        fileOut<<"Average\t"<<average()<<'\n';
+        fileOut<<"Mode\t"<<mode()<<'\n';
+        fileOut<<"Mode\t"<<median()<<'\n';
+
+      }
+    }
+
+
     // add a time duration
     void addDuration(typename Clock::duration now)
     {
@@ -56,15 +107,22 @@ public:
         auto it=histogram.find(key);
         // if we don't have this time add
         if(it ==std::end(histogram))
+        {
           histogram[key]=1; // first count
+        }
         else // found
+        {
+
           ++it->second; // otherwise increment
+        }
       }
+      // now find the max
       auto max=std::max_element(std::begin(histogram),std::end(histogram),
       [](const auto& p1, const auto& p2)
       {
         return p1.second < p2.second;
       });
+      // this is the mode!
       return max->first;
     }
 
@@ -88,6 +146,7 @@ public:
     std::vector<typename Clock::duration> m_durations;
     typename Clock::duration m_min{Clock::duration::max()};
     typename Clock::duration m_max{Clock::duration::min()};
+    std::string m_filename;
 
 
 };

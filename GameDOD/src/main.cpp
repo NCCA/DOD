@@ -168,15 +168,17 @@ int main(int argc, char * argv[])
   // now tidy up and exit SDL
  SDL_Quit();
  teardown();
- std::cout<<"Render Benchmarks Min "<<renderBenchmark.min()
-          <<" uS Max "<<renderBenchmark.max()
-          <<" uS Average "<<renderBenchmark.average()
-          <<" uS Median "<<renderBenchmark.median()<<" uS\n";
+  std::cout<<"Render Benchmarks Min "<<renderBenchmark.min()
+           <<" uS Max "<<renderBenchmark.max()
+           <<" uS Average "<<renderBenchmark.average()
+           <<" uS Median "<<renderBenchmark.median()
+           <<" uS Mode "<< renderBenchmark.mode()<<" uS\n";
 
- std::cout<<"Update Benchmarks Min "<<updateBenchmark.min()
-          <<" uS Max "<<updateBenchmark.max()
-          <<" uS Average "<<updateBenchmark.average()
-          <<" uS Median "<<updateBenchmark .median()<<" uS\n";
+  std::cout<<"Update Benchmarks Min "<<updateBenchmark.min()
+           <<" uS Max "<<updateBenchmark.max()
+           <<" uS Average "<<updateBenchmark.average()
+           <<" uS Median "<<updateBenchmark.median()
+           <<" uS Mode "<< updateBenchmark.mode()<<" uS\n";
 
 
  // whilst this code will never execute under windows we need to have a return from
