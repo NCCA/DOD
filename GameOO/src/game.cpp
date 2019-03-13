@@ -16,8 +16,6 @@
 class GameObject;
 class Component;
 
-typedef std::vector<Component*> ComponentVector;
-typedef std::vector<GameObject*> GameObjectVector;
 
 
 // Component base class. Knows about the parent game object, and has some virtual methods.
@@ -25,10 +23,10 @@ class Component
 {
 public:
     Component() : m_GameObject(nullptr) {}
-    virtual ~Component() {}
+    virtual ~Component()=default;
     
-    virtual void Start() {}
-    virtual void Update(float deltaTime) {}
+    virtual  void Start() {}
+    virtual  void Update(float ) {}
 
     const GameObject& GetGameObject() const { return *m_GameObject; }
     GameObject& GetGameObject() { return *m_GameObject; }
@@ -77,18 +75,18 @@ public:
     
 private:
     std::string m_Name;
-    ComponentVector m_Components;
+    std::vector<Component*> m_Components;
 };
 
 // The "scene": array of game objects.
-static GameObjectVector s_Objects;
+static std::vector<GameObject*> s_Objects;
 
 
 // Finds all components of given type in the whole scene
 template<typename T>
-static ComponentVector FindAllComponentsOfType()
+static std::vector<Component*> FindAllComponentsOfType()
 {
-    ComponentVector res;
+    std::vector<Component*> res;
     for (auto go : s_Objects)
     {
         T* c = go->GetComponent<T>();
@@ -207,7 +205,7 @@ struct AvoidThisComponent : public Component
 // - also they take sprite color from the object they just bumped into
 struct AvoidComponent : public Component
 {
-    static ComponentVector avoidList;
+    static std::vector<Component*> avoidList;
     
     virtual void Start() override
     {
@@ -242,7 +240,7 @@ struct AvoidComponent : public Component
         // check each thing in avoid list
         for (auto avc : avoidList)
         {
-            AvoidThisComponent* av = (AvoidThisComponent*)avc;
+            AvoidThisComponent* av = static_cast<AvoidThisComponent*>(avc);
 
             PositionComponent* avoidposition = av->GetGameObject().GetComponent<PositionComponent>();
             // is our position closer to "thing to avoid" position than the avoid distance?
@@ -261,7 +259,7 @@ struct AvoidComponent : public Component
     }
 };
 
-ComponentVector AvoidComponent::avoidList;
+std::vector<Component*> AvoidComponent::avoidList;
 
 
 // -------------------------------------------------------------------------------------------------
@@ -312,7 +310,7 @@ void initialize(size_t _numObjects, size_t _numAvoid)
     }
 
     // create objects that should be avoided
-    for (auto i = 0; i < _numAvoid; ++i)
+    for (size_t i = 0; i < _numAvoid; ++i)
     {
         GameObject* go = new GameObject("toavoid");
         
@@ -359,7 +357,7 @@ void teardown()
 
 size_t update(RenderData* data, float time)
 {
-    int objectCount = 0;
+    size_t objectCount = 0;
     // go through all objects
     for (auto go : s_Objects)
     {
@@ -375,13 +373,9 @@ size_t update(RenderData* data, float time)
         if (pos != nullptr && sprite != nullptr)
         {
             RenderData& spr = data[objectCount++];
-            //spr.pos.m_x=pos->pos.m_x;
-            //spr.pos.m_y=pos->pos.m_y;
             spr.pos=pos->pos;
             spr.colourScale=sprite->colourScale;
 
-            //spr.colourScale.m_z=globalScale;
-            //spr.
 
         }
     }

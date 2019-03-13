@@ -2,7 +2,9 @@
 #define BENCHMARK_H_
 #include <chrono>
 #include <vector>
-
+#include <unordered_map>
+#include <iostream>
+#include <algorithm>
 /// @brief simple Benchmark class for timing things
 
 template<typename Clock=std::chrono::high_resolution_clock, typename Resolution=std::chrono::microseconds>
@@ -41,6 +43,29 @@ public:
       }
       result /= m_durations.size();
       return std::chrono::duration_cast<Resolution>(result).count();
+    }
+
+
+    auto mode()
+    {
+      // Map of tick and count
+      std::unordered_map<size_t,size_t> histogram;
+      for(auto d : m_durations)
+      {
+        auto key=std::chrono::duration_cast<Resolution>(d).count();
+        auto it=histogram.find(key);
+        // if we don't have this time add
+        if(it ==std::end(histogram))
+          histogram[key]=1; // first count
+        else // found
+          ++it->second; // otherwise increment
+      }
+      auto max=std::max_element(std::begin(histogram),std::end(histogram),
+      [](const auto& p1, const auto& p2)
+      {
+        return p1.second < p2.second;
+      });
+      return max->first;
     }
 
     auto max()

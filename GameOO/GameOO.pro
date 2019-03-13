@@ -36,7 +36,8 @@ CONFIG-=app_bundle
 SOURCES+= $$PWD/src/game.cpp \
           $$PWD/src/main.cpp
 # same for the .h files
-HEADERS+= $$PWD/include/game.h
+HEADERS+= $$PWD/include/game.h \
+          ../Benchmark/Benchmark.h
 # and add the include dir into the search path for Qt and make
 INCLUDEPATH +=./include \
               ../Benchmark/

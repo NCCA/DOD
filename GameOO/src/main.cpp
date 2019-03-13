@@ -176,7 +176,8 @@ int main(int argc, char * argv[])
            <<" uS Average "<<updateBenchmark.average()
            <<" uS Median "<<updateBenchmark .median()<<" uS\n";
 
-
+  updateBenchmark.mode();
+  renderBenchmark.mode();
 
   // now tidy up and exit SDL
  SDL_Quit();
