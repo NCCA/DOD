@@ -102,8 +102,8 @@ int main(int argc, char * argv[])
   bool quit=false;
   // sdl event processing data structure
   SDL_Event event;
-  Benchmark <>updateBenchmark(2000);
-  Benchmark <>renderBenchmark(2000);
+  Benchmark <>updateBenchmark(2000,"updateBench.txt");
+  Benchmark <>renderBenchmark(2000,"renderBench.txt");
   auto end= std::chrono::system_clock::now();
   auto start = std::chrono::system_clock::now();
 
