@@ -104,17 +104,18 @@ public:
       for(auto d : m_durations)
       {
         auto key=std::chrono::duration_cast<Resolution>(d).count();
-        auto it=histogram.find(key);
+        histogram[key]++;
+        //auto it=histogram.find(key);
         // if we don't have this time add
-        if(it ==std::end(histogram))
-        {
-          histogram[key]=1; // first count
-        }
-        else // found
-        {
+//        if(it ==std::end(histogram))
+//        {
+//          histogram[key]=1; // first count
+//        }
+//        else // found
+//        {
 
-          ++it->second; // otherwise increment
-        }
+//          ++it->second; // otherwise increment
+//        }
       }
       // now find the max
       auto max=std::max_element(std::begin(histogram),std::end(histogram),
